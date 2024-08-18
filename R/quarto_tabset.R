@@ -24,9 +24,9 @@
 #'   complex layouts may not work. See Examples for more details.
 #'
 #' @param data A data frame.
-#' @param tabset_vars <[`tidy-select`][dplyr_tidy_select]>
+#' @param tabset_vars
 #' Variables to use as tabset labels.
-#' @param output_vars <[`tidy-select`][dplyr_tidy_select]>
+#' @param output_vars
 #' Variables to display in each tabset panel.
 #' @param layout `NULL` or a character vector of length 1 for specifying layout
 #' in tabset panel. If not `NULL`, `layout` must begin with at least three
@@ -138,10 +138,14 @@ quarto_tabset <- function(
   }
 
   # Ungroup data first
-  data <- dplyr::ungroup(data)
+  # data <- dplyr::ungroup(data)
 
   # Get tabset column names from data based on tabset_vars
-  tabset_names <- colnames(dplyr::select(data, {{ tabset_vars }}))
+  tabset_names <- do.call(
+    subset,
+    list(x = data, select = substitute(tabset_vars))
+  )
+  tabset_names <- colnames(tabset_names)
 
   len_tab <- length(tabset_names)
 
@@ -161,7 +165,11 @@ quarto_tabset <- function(
   )
 
   # Get output column names from data based on output_vars
-  output_names <- colnames(dplyr::select(data, {{ output_vars }}))
+  output_names <- do.call(
+    subset,
+    list(x = data, select = substitute(output_vars))
+  )
+  output_names <- colnames(output_names)
 
   stopifnot(
     "`output_vars` must be of length 1 or more." =
@@ -172,34 +180,69 @@ quarto_tabset <- function(
   )
 
   # Restructure data to be in tabset format ----
-  df1 <- dplyr::select(data, {{ tabset_vars }}, {{ output_vars }})
-  df1 <- dplyr::arrange(df1, dplyr::pick({{ tabset_vars }}))
-  df1 <- dplyr::mutate(
-    df1,
-    # If tabset_vars contains factor, the labels on the tabs will be numbers.
-    # If output_vars contains factor, the output using `cat()` produce integers.
-    # So, convert all factor columns to characters.
-    dplyr::across(dplyr::where(is.factor), as.character)
-  )
+  # df1 <- dplyr::select(data, {{ tabset_vars }}, {{ output_vars }})
 
+  # df1 <- dplyr::arrange(data, dplyr::pick({{ tabset_vars }}))
+  df1 <- data[do.call(order, data[, tabset_names]), ]
+  # df1 <- dplyr::mutate(
+  #   df1,
+  #   dplyr::across(dplyr::where(is.factor), as.character)
+  # )
+  # If tabset_vars contains factor, the labels on the tabs will be numbers.
+  # If output_vars contains factor, the output using `cat()` produce integers.
+  # So, convert all factor columns to characters.
+  df1[] <- lapply(df1, function(x) if (is.factor(x)) as.character(x) else x)
+
+  # df1 <- Reduce(
+  #   f = function(df, idx) {
+  #     gvars <- tabset_names[seq_len(idx) - 1]
+  #     df <- dplyr::group_by(df, dplyr::pick(dplyr::any_of(gvars)))
+  #     df <- dplyr::mutate(
+  #       df,
+  #       # Add start and end markers for each tabset
+  #       # nolint start: object_name_linter, object_usage_linter.
+  #       "tabset{idx}_start__" := dplyr::row_number() == 1,
+  #       "tabset{idx}_end__" := dplyr::row_number() == max(dplyr::row_number())
+  #       # nolint end
+  #     )
+  #     df <- dplyr::ungroup(df)
+  #   },
+  #   x = seq_len(len_tab),
+  #   init = df1
+  # )
+
+  # 事前定義: tabset_names は列名のベクトル, len_tab はタブセットの数
+  # df1 <- df1[order(df1[, tabset_names[[1]]]), ] # Sort the data frame by the first tabset
+
+  # worked ---------------
   df1 <- Reduce(
     f = function(df, idx) {
       gvars <- tabset_names[seq_len(idx) - 1]
-      df <- dplyr::group_by(df, dplyr::pick(dplyr::any_of(gvars)))
-      df <- dplyr::mutate(
-        df,
-        # Add start and end markers for each tabset
-        # nolint start: object_name_linter, object_usage_linter.
-        "tabset{idx}_start__" := dplyr::row_number() == 1,
-        "tabset{idx}_end__" := dplyr::row_number() == max(dplyr::row_number())
-        # nolint end
-      )
-      df <- dplyr::ungroup(df)
+
+      # グループ化
+      if (length(gvars) > 0) {
+        df <- split(df, df[gvars])
+      } else {
+        df <- list(df)
+      }
+
+      # 新しい列の追加
+      df <- lapply(df, function(group) {
+        n <- nrow(group)
+        group[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
+        group[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
+        group
+      })
+
+      # 結果の結合
+      df <- do.call(rbind, df)
+      # rownames(df) <- NULL
+
+      df
     },
     x = seq_len(len_tab),
     init = df1
   )
-
 
   # For each row of the data, print the tabset and output panels ----
   invisible(
@@ -300,4 +343,15 @@ quarto_tabset <- function(
   )
 
   invisible(df1)
+}
+
+#' @noRd
+select_elements <- function(x, select) {
+  nl <- as.list(seq_along(x))
+  nm <- names(x)
+  names(nl) <- nm
+  vars <- eval(substitute(select), nl, parent.frame())
+  # names(res) <- nm[res]
+  # res
+  colnames(x[, vars, drop = FALSE])
 }
