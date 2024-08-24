@@ -124,31 +124,33 @@ quarto_tabset <- function(
 
         # Loop through each tabset column starting from the second one
         if (len_tab >= 2) {
-          for (j in 2:len_tab) {
-            # Check if this row contains a column
-            # for the start of the current tabset
-            if (df1[[i, paste0("tabset", j, "_start__")]]) {
+          lapply(
+            2:len_tab,
+            function(j) {
+              # Check if this row contains a column
+              # for the start of the current tabset
+              if (df1[[i, paste0("tabset", j, "_start__")]]) {
 
-              # Print the heading
-              heading_level <- heading_levels[j - 1]
+                # Print the heading
+                heading_level <- heading_levels[j - 1]
 
-              if (is.na(heading_level)) {
-                heading_level <- j - 1
+                if (is.na(heading_level)) {
+                  heading_level <- j - 1
+                }
+
+                cat(
+                  strrep("#", heading_level),
+                  df1[[i, tabset_names[j - 1]]],
+                  "\n\n"
+                )
+
+                # Print a panel-tabset div if the heading_level is NA
+                if (is.na(heading_levels[j])) {
+                  cat("::: {.panel-tabset} \n\n")
+                }
               }
-
-              cat(
-                strrep("#", heading_level),
-                df1[[i, tabset_names[j - 1]]],
-                "\n\n"
-              )
-
-              # Print a panel-tabset div if the heading_level is NA
-              if (is.na(heading_levels[j])) {
-                cat("::: {.panel-tabset} \n\n")
-              }
+            })
             }
-          }
-        }
 
         heading_level <- heading_levels[len_tab]
 
@@ -170,24 +172,45 @@ quarto_tabset <- function(
         }
 
         # Print the outputs
-        for (j in seq_along(output_names)) {
-          out_col <- df1[[i, output_names[j]]]
+        lapply(
+          seq_along(output_names),
+          function(j) {
+            out_col <- df1[[i, output_names[j]]]
 
-          # add [[1]] at the end because figures and tables
-          # are stored as lists in columns
-          out <- out_col[[1]]
+            # add [[1]] at the end because figures and tables
+            # are stored as lists in columns
+            out <- out_col[[1]]
 
-          # Use `print()` for list-type columns (), otherwise use `cat()`.
-          # Using `cat()` avoids unnecessary prefixes
-          # such as "[1]" in the output.
-          if (is.list(out_col)) {
-            print(out)
-          } else {
-            cat(out)
+            # Use `print()` for list-type columns (), otherwise use `cat()`.
+            # Using `cat()` avoids unnecessary prefixes
+            # such as "[1]" in the output.
+            if (is.list(out_col)) {
+              print(out)
+            } else {
+              cat(out)
+            }
+
+            cat("\n\n")
           }
-
-          cat("\n\n")
-        }
+        )
+        # for (j in seq_along(output_names)) {
+        #   out_col <- df1[[i, output_names[j]]]
+        #
+        #   # add [[1]] at the end because figures and tables
+        #   # are stored as lists in columns
+        #   out <- out_col[[1]]
+        #
+        #   # Use `print()` for list-type columns (), otherwise use `cat()`.
+        #   # Using `cat()` avoids unnecessary prefixes
+        #   # such as "[1]" in the output.
+        #   if (is.list(out_col)) {
+        #     print(out)
+        #   } else {
+        #     cat(out)
+        #   }
+        #
+        #   cat("\n\n")
+        # }
 
         # Close layout-div if layout exists
         if (!is.null(layout)) {
@@ -196,16 +219,19 @@ quarto_tabset <- function(
 
         # Loop through each tabset column in reverse order.
         # (To close from the inner tabset.)
-        for (j in rev(seq_len(len_tab))) {
-          # Check if this row contains a column
-          # for the end of the current tabset
-          if (is.na(heading_levels[j]) &&
+        lapply(
+          rev(seq_len(len_tab)),
+          function(j) {
+            # Check if this row contains a column
+            # for the end of the current tabset
+            if (is.na(heading_levels[j]) &&
                 df1[[i, paste0("tabset", j, "_end__")]]) {
-            # Close the panel-tabset div
-            cat("::: \n\n")
+              # Close the panel-tabset div
+              cat("::: \n\n")
+            }
           }
+        )
         }
-      }
     )
   )
 
