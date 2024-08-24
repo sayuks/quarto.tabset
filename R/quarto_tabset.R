@@ -105,79 +105,13 @@ quarto_tabset <- function(
   heading_levels <- l$heading_levels
   len_tab <- length(tabset_names)
 
-  # Restructure data to be in tabset format ----
-  # df1 <- dplyr::select(data, {{ tabset_vars }}, {{ output_vars }})
-
-  # df1 <- dplyr::arrange(data, dplyr::pick({{ tabset_vars }}))
-  df1 <- data[do.call(order, data[, tabset_names, drop = FALSE]), ]
-  # df1 <- dplyr::mutate(
-  #   df1,
-  #   dplyr::across(dplyr::where(is.factor), as.character)
-  # )
-  # If tabset_vars contains factor, the labels on the tabs will be numbers.
-  # If output_vars contains factor, the output using `cat()` produce integers.
-  # So, convert all factor columns to characters.
-  df1[] <- lapply(df1, function(x) if (is.factor(x)) as.character(x) else x)
-
-  # df1 <- Reduce(
-  #   f = function(df, idx) {
-  #     gvars <- tabset_names[seq_len(idx) - 1]
-  #     df <- dplyr::group_by(df, dplyr::pick(dplyr::any_of(gvars)))
-  #     df <- dplyr::mutate(
-  #       df,
-  #       # Add start and end markers for each tabset
-  #       # nolint start: object_name_linter, object_usage_linter.
-  #       "tabset{idx}_start__" := dplyr::row_number() == 1,
-  #       "tabset{idx}_end__" := dplyr::row_number() == max(dplyr::row_number())
-  #       # nolint end
-  #     )
-  #     df <- dplyr::ungroup(df)
-  #   },
-  #   x = seq_len(len_tab),
-  #   init = df1
-  # )
-
-  # 事前定義: tabset_names は列名のベクトル, len_tab はタブセットの数
-  # df1 <- df1[order(df1[, tabset_names[[1]]]), ] # Sort the data frame by the first tabset
-
-  # worked ---------------
-  rn <- rownames(df1)
-
-  df1 <- Reduce(
-    f = function(df, idx) {
-      gvars <- tabset_names[seq_len(idx) - 1]
-
-      # グループ化
-      if (length(gvars) > 0) {
-        df <- split(df, df[gvars])
-      } else {
-        df <- list(df)
-      }
-
-      # 新しい列の追加
-      df <- lapply(df, function(group) {
-        n <- nrow(group)
-        group[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
-        group[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
-        group
-      })
-
-      # 結果の結合
-      df <- do.call(rbind, df)
-
-      df
-    },
-    x = seq_len(len_tab),
-    init = df1
+  df1 <- prep_data(
+    data,
+    tabset_names,
+    output_names
   )
 
-  rownames(df1) <- NULL
-
-  if (!identical(rn, as.character(seq_len(nrow(df1))))) {
-    rownames(df1) <- rn
-  }
-
-  # For each row of the data, print the tabset and output panels ----
+    # For each row of the data, print the tabset and output panels ----
   invisible(
     lapply(
       seq_len(nrow(df1)),
@@ -397,4 +331,52 @@ validate_data <- function(
     output_names = output_names,
     heading_levels = heading_levels
   )
+}
+
+
+#' @noRd
+prep_data <- function(data, tabset_names, output_names) {
+  len_tab <- length(tabset_names)
+  df1 <- data[do.call(order, data[, tabset_names, drop = FALSE]), ]
+  df1[, c(tabset_names, output_names)] <- lapply(
+    df1[, c(tabset_names, output_names)],
+    function(x) if (is.factor(x)) as.character(x) else x
+  )
+  rn <- rownames(df1)
+
+  df1 <- Reduce(
+    f = function(df, idx) {
+      gvars <- tabset_names[seq_len(idx) - 1]
+
+      # グループ化
+      if (length(gvars) > 0) {
+        df <- split(df, df[gvars])
+      } else {
+        df <- list(df)
+      }
+
+      # 新しい列の追加
+      df <- lapply(df, function(group) {
+        n <- nrow(group)
+        group[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
+        group[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
+        group
+      })
+
+      # 結果の結合
+      df <- do.call(rbind, df)
+
+      df
+    },
+    x = seq_len(len_tab),
+    init = df1
+  )
+
+  rownames(df1) <- NULL
+
+  if (!identical(rn, as.character(seq_len(nrow(df1))))) {
+    rownames(df1) <- rn
+  }
+
+  df1
 }
