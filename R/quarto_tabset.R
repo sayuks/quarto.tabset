@@ -89,101 +89,27 @@ quarto_tabset <- function(
   layout = NULL,
   heading_levels = NULL
 ) {
-  # Validation steps ------
-  stopifnot(
-    "`data` must be a data frame" =
-      is.data.frame(data),
-    "`data` must have one or more rows." =
-      nrow(data) >= 1,
-    "`data` must have two or more columns." =
-      ncol(data) >= 2
+  l <- do.call(
+    validate_data,
+    list(
+      data = data,
+      tabset_vars = substitute(tabset_vars),
+      output_vars = substitute(output_vars),
+      layout = layout,
+      heading_levels = heading_levels
+    )
   )
 
-  if (!is.null(layout)) {
-    stopifnot(
-      "`layout` must be length 1." =
-        length(layout) == 1,
-      "`layout` must be character." =
-        is.character(layout),
-      '`layout` must begin with at least three or more repetitions of ":"' =
-        grepl("^:{3,}", layout)
-    )
-  }
-
-  if (!is.null(heading_levels)) {
-    stopifnot(
-      "`heading_levels` must be numeric." =
-        is.numeric(heading_levels),
-      "`heading_levels` must be length 1 or greater." =
-        length(heading_levels) > 0,
-      "`heading_levels` must not include NaN." =
-        !is.nan(heading_levels),
-      "`heading_levels` must not be infinite." =
-        !is.infinite(heading_levels)
-    )
-
-    nums <- heading_levels[!is.na(heading_levels)]
-
-    if (length(nums) > 0) {
-      stopifnot(
-        # ref. examples section of `?integer`
-        "`heading_levels` except for NAs must be integer-ish." =
-          abs(nums - round(nums)) < .Machine$double.eps^0.5,
-        "`heading_levels` except for NAs must be positive." =
-          nums > 0
-      )
-    }
-
-    heading_levels <- as.integer(heading_levels)
-  }
-
-  # Ungroup data first
-  # data <- dplyr::ungroup(data)
-
-  # Get tabset column names from data based on tabset_vars
-  tabset_names <- do.call(
-    subset,
-    list(x = data, select = substitute(tabset_vars))
-  )
-  tabset_names <- colnames(tabset_names)
-
+  tabset_names <- l$tabset_names
+  output_names <- l$output_names
+  heading_levels <- l$heading_levels
   len_tab <- length(tabset_names)
-
-  stopifnot(
-    "`tabset_vars` must be of length 1 or more." =
-      len_tab > 0
-  )
-
-  if (is.null(heading_levels)) {
-    heading_levels <- rep(NA_integer_, len_tab)
-  }
-
-  stopifnot(
-    "The number of columns specified in `tabset_vars`
-      and the length of `heading_levels` must be the same." =
-      length(heading_levels) == len_tab
-  )
-
-  # Get output column names from data based on output_vars
-  output_names <- do.call(
-    subset,
-    list(x = data, select = substitute(output_vars))
-  )
-  output_names <- colnames(output_names)
-
-  stopifnot(
-    "`output_vars` must be of length 1 or more." =
-      length(output_names) > 0,
-
-    "There must not be variables that are included in both `tabset_vars` and `output_vars`." = # nolint line_length_lintr
-      length(intersect(tabset_names, output_names)) == 0
-  )
 
   # Restructure data to be in tabset format ----
   # df1 <- dplyr::select(data, {{ tabset_vars }}, {{ output_vars }})
 
   # df1 <- dplyr::arrange(data, dplyr::pick({{ tabset_vars }}))
-  df1 <- data[do.call(order, data[, tabset_names]), ]
+  df1 <- data[do.call(order, data[, tabset_names, drop = FALSE]), ]
   # df1 <- dplyr::mutate(
   #   df1,
   #   dplyr::across(dplyr::where(is.factor), as.character)
@@ -215,6 +141,8 @@ quarto_tabset <- function(
   # df1 <- df1[order(df1[, tabset_names[[1]]]), ] # Sort the data frame by the first tabset
 
   # worked ---------------
+  rn <- rownames(df1)
+
   df1 <- Reduce(
     f = function(df, idx) {
       gvars <- tabset_names[seq_len(idx) - 1]
@@ -236,13 +164,18 @@ quarto_tabset <- function(
 
       # 結果の結合
       df <- do.call(rbind, df)
-      # rownames(df) <- NULL
 
       df
     },
     x = seq_len(len_tab),
     init = df1
   )
+
+  rownames(df1) <- NULL
+
+  if (!identical(rn, as.character(seq_len(nrow(df1))))) {
+    rownames(df1) <- rn
+  }
 
   # For each row of the data, print the tabset and output panels ----
   invisible(
@@ -345,13 +278,123 @@ quarto_tabset <- function(
   invisible(df1)
 }
 
+
 #' @noRd
-select_elements <- function(x, select) {
-  nl <- as.list(seq_along(x))
-  nm <- names(x)
-  names(nl) <- nm
-  vars <- eval(substitute(select), nl, parent.frame())
-  # names(res) <- nm[res]
-  # res
-  colnames(x[, vars, drop = FALSE])
+validate_data <- function(
+  data,
+  tabset_vars,
+  output_vars,
+  layout = NULL,
+  heading_levels = NULL
+) {
+  # Validation steps ------
+  stopifnot(
+    "`data` must be a data frame" =
+      is.data.frame(data),
+    "`data` must have one or more rows." =
+      nrow(data) >= 1,
+    "`data` must have two or more columns." =
+      ncol(data) >= 2
+  )
+
+  if (!is.null(layout)) {
+    stopifnot(
+      "`layout` must be length 1." =
+        length(layout) == 1,
+      "`layout` must be character." =
+        is.character(layout),
+      '`layout` must begin with at least three or more repetitions of ":"' =
+        grepl("^:{3,}", layout)
+    )
+  }
+
+  if (!is.null(heading_levels)) {
+    stopifnot(
+      "`heading_levels` must be numeric." =
+        is.numeric(heading_levels),
+      "`heading_levels` must be length 1 or greater." =
+        length(heading_levels) > 0,
+      "`heading_levels` must not include NaN." =
+        !is.nan(heading_levels),
+      "`heading_levels` must not be infinite." =
+        !is.infinite(heading_levels)
+    )
+
+    nums <- heading_levels[!is.na(heading_levels)]
+
+    if (length(nums) > 0) {
+      stopifnot(
+        # ref. examples section of `?integer`
+        "`heading_levels` except for NAs must be integer-ish." =
+          abs(nums - round(nums)) < .Machine$double.eps^0.5,
+        "`heading_levels` except for NAs must be positive." =
+          nums > 0
+      )
+    }
+
+    heading_levels <- as.integer(heading_levels)
+  }
+
+  # Ungroup data first
+  # data <- dplyr::ungroup(data)
+
+  # Get tabset column names from data based on tabset_vars
+  tabset_names <- do.call(
+    subset,
+    list(x = data, select = substitute(tabset_vars))
+  )
+  tabset_names <- colnames(tabset_names)
+
+  len_tab <- length(tabset_names)
+
+  stopifnot(
+    "`tabset_vars` must be of length 1 or more." =
+      len_tab > 0
+  )
+
+  tabset_classes <- vapply(
+    data[, tabset_names, drop = FALSE],
+    class,
+    character(1)
+  )
+
+  tabset_list_cols <- tabset_classes[tabset_classes == "list"]
+
+  if (length(tabset_list_cols) > 0) {
+    stop(
+      "`tabset_vars` must not contain list columns: ",
+      toString(names(tabset_list_cols))
+    )
+  }
+
+  if (is.null(heading_levels)) {
+    heading_levels <- rep(NA_integer_, len_tab)
+  }
+
+  stopifnot(
+    "The number of columns specified in `tabset_vars`
+      and the length of `heading_levels` must be the same." =
+      length(heading_levels) == len_tab
+  )
+
+  # Get output column names from data based on output_vars
+  output_names <- do.call(
+    subset,
+    list(x = data, select = substitute(output_vars))
+  )
+  output_names <- colnames(output_names)
+
+  stopifnot(
+    "`output_vars` must be of length 1 or more." =
+      length(output_names) > 0,
+
+    "There must not be variables that are included in both `tabset_vars` and `output_vars`." = # nolint line_length_lintr
+      length(intersect(tabset_names, output_names)) == 0
+  )
+
+  list(
+    tabset_names = tabset_names,
+    output_names = output_names,
+    heading_levels = heading_levels
+  )
 }

@@ -15,11 +15,9 @@ quarto_tabset(
 \arguments{
 \item{data}{A data frame.}
 
-\item{tabset_vars}{<\code{\link[=dplyr_tidy_select]{tidy-select}}>
-Variables to use as tabset labels.}
+\item{tabset_vars}{Variables to use as tabset labels.}
 
-\item{output_vars}{<\code{\link[=dplyr_tidy_select]{tidy-select}}>
-Variables to display in each tabset panel.}
+\item{output_vars}{Variables to display in each tabset panel.}
 
 \item{layout}{\code{NULL} or a character vector of length 1 for specifying layout
 in tabset panel. If not \code{NULL}, \code{layout} must begin with at least three
@@ -50,26 +48,28 @@ it is preferable to gradually increase the level, as in 1, 2 and 3.
 \description{
 The function takes in a data frame or a tibble and produces
 tabset panels for each unique combination of the tabset variables.
-\emph{\strong{Only works with .qmd files in HTML format.}}\cr
-\cr
-\emph{\strong{//// See below for a detailed demo: ////}}\cr
-\url{http://10.13.123.231:3838/team_package/demo/demo_quarto_tabset.html}
+\emph{\strong{Only works with .qmd files in HTML format.}}
 }
 \details{
 \itemize{
-\item Write \verb{#| results: asis} at the beginning of the chunk or \code{results='asis'} in the chunk options.
-\item The \code{data} is sorted internally in the order of \code{tabset_vars}. Define the order beforehand, e.g. using factor.
+\item Write \verb{#| results: asis} at the beginning of the chunk or
+\code{results='asis'} in the chunk options.
+\item The \code{data} is sorted internally in the order of \code{tabset_vars}.
+Define the order beforehand, e.g. using factor.
 \item If multiple \code{tabset_vars} are given, create nested tabsets.
 \item \code{output_vars} can also be figures or tables if \code{data} is a tibble.
-\item If factor columns are included in output_vars, they are converted internally to character.
-\item When outputting tables or figures that use javascript (such as \code{{plotly}}, \code{{leaflet}}, \code{{DT}}, \code{{reactable}}, etc.),
+\item If factor columns are included in output_vars, they are converted
+internally to character.
+\item When outputting tables or figures that use javascript
+(such as \code{{plotly}}, \code{{leaflet}}, \code{{DT}}, \code{{reactable}}, etc.),
 it seems javascript dependencies need to be resolved.
-A simple solution is to wrap the output in \code{\link[htmltools:builder]{htmltools::div()}} and create a dummy plot in another chunk.
-See the demo page for details.
+A simple solution is to wrap the output in \code{\link[htmltools:builder]{htmltools::div()}}
+and create a dummy plot in another chunk. See the demo page for details.
 \item The function has an optional argument, \code{layout}, which allows for
-the addition of layout option to the outputs (see \url{https://quarto.org/docs/authoring/figures.html}).
-However, this is intended for simplified use cases and complex layouts may not work.
-See Examples for more details.
+the addition of layout option to the outputs
+(see \url{https://quarto.org/docs/authoring/figures.html}).
+However, this is intended for simplified use cases and
+complex layouts may not work. See Examples for more details.
 }
 }
 \examples{
@@ -90,18 +90,11 @@ df <- data.frame(
 # Basic usage
 quarto_tabset(df, c(group1, group2), c(var1, var2, var3))
 
-# Strings can also be used for variables.
-quarto_tabset(df, c("group1", "group2"), c("var1", "var2", "var3"))
-
-# dplyr can be used. Also, here is an example of a layout.
-# Since this example outputs numbers, layout may be meaningless.
-# layout is intended to be used when figures or tables are output.
-# When a layout exists, the div that closes the layout (usually ":::") is
-# automatically inserted internally.
+# Here is an example of the `layout` argument.
 quarto_tabset(
   df,
-  starts_with("group"),
-  starts_with("var"),
+  c(group1, group2),
+  c(var1, var2, var3),
   layout = '::: {layout="[2, 3, 5]"}'
 )
 

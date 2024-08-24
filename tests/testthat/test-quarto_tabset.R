@@ -75,10 +75,21 @@ test_that("quarto_tabset(), basic", {
       ""
     )
 
-  testthat::expect_identical(
-    quarto_tabset(df_sample, c(group1, group2), c(var1, var2, var3)) %>%
-      capture.output(),
+  res <- utils::capture.output(
+    quarto_tabset(df_sample, c(group1, group2), c(var1, var2, var3))
+  )
+
+  expect_equal(
+    res,
     expected
+  )
+
+  # tibble input works
+  expect_equal(
+    utils::capture.output(
+        quarto_tabset(tibble::as_tibble(df_sample), c(group1, group2), c(var1, var2, var3))
+    ),
+    res
   )
 })
 
@@ -183,14 +194,15 @@ test_that("quarto_tabset(), layout argument", {
       ""
     )
 
-  testthat::expect_identical(
-    quarto_tabset(
-      df_sample,
-      c(group1, group2),
-      c(var1, var2, var3),
-      layout = '::: {layout="[2, 3, 5]"}'
-    ) %>%
-      capture.output(),
+  expect_equal(
+    utils::capture.output(
+      quarto_tabset(
+        df_sample,
+        c(group1, group2),
+        c(var1, var2, var3),
+        layout = '::: {layout="[2, 3, 5]"}'
+      )
+    ),
     expected
   )
 })
@@ -260,14 +272,15 @@ test_that("quarto_tabset(), heading_levels argument", {
       ""
     )
 
-  testthat::expect_identical(
-    quarto_tabset(
-      df_sample,
-      c(group1, group2),
-      c(var1, var2, var3),
-      heading_levels = c(1, 2)
-    ) %>%
-      capture.output(),
+  expect_equal(
+    utils::capture.output(
+      quarto_tabset(
+        df_sample,
+        c(group1, group2),
+        c(var1, var2, var3),
+        heading_levels = c(1, 2)
+      )
+    ),
     expected
   )
 })
@@ -345,14 +358,15 @@ test_that("quarto_tabset(), heading_levels argument with NA", {
       ""
     )
 
-  testthat::expect_identical(
-    quarto_tabset(
-      df_sample,
-      c(group1, group2),
-      c(var1, var2, var3),
-      heading_levels = c(1, NA)
-    ) %>%
-      capture.output(),
+  expect_equal(
+    utils::capture.output(
+      quarto_tabset(
+        df_sample,
+        c(group1, group2),
+        c(var1, var2, var3),
+        heading_levels = c(1, NA)
+      )
+    ),
     expected
   )
 })
@@ -454,15 +468,16 @@ test_that("quarto_tabset(), both layout and heading_levels arguments", {
       ""
     )
 
-  testthat::expect_identical(
-    quarto_tabset(
-      df_sample,
-      c(group1, group2),
-      c(var1, var2, var3),
-      layout = '::: {layout="[2, 3, 5]"}',
-      heading_levels = c(1, NA)
-    ) %>%
-      capture.output(),
+  expect_equal(
+    utils::capture.output(
+      quarto_tabset(
+        df_sample,
+        c(group1, group2),
+        c(var1, var2, var3),
+        layout = '::: {layout="[2, 3, 5]"}',
+        heading_levels = c(1, NA)
+      )
+    ),
     expected
   )
 })
