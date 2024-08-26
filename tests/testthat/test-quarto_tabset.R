@@ -87,7 +87,11 @@ test_that("quarto_tabset(), basic", {
   # tibble input works
   expect_equal(
     utils::capture.output(
-        quarto_tabset(tibble::as_tibble(df_sample), c(group1, group2), c(var1, var2, var3))
+      quarto_tabset(
+        tibble::as_tibble(df_sample),
+        c(group1, group2),
+        c(var1, var2, var3)
+      )
     ),
     res
   )
