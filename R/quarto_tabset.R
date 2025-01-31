@@ -45,9 +45,24 @@
 #'    text. In addition, considering the chapter format,
 #'    it is preferable to gradually increase the level, as in 1, 2 and 3.
 #'    * If the element is NA, tabset is displayed.
+#' @param retrun_data A logical (defaults to `FALSE`).
+#'   If `TRUE`, returns a data frame created by the internal process
+#'   to create the tabset. It is the original dataframe with the column
+#'   marked `TRUE` added to the row that begins or ends the heading
+#'   of the tabset (e.g. `tabset1_start__`. `tabset1_end__` etc.).
+#'   And factor columns specified in `tabset_vars` or `output_vars` are
+#'   converted to charactor columns.
+#'   In this case, no printing to create a tabset is performed.
 #'
-#' @return `NULL` invisibly. (Create tabsest/heading as a side effect.)
-#'
+#' @return If `retrun_data` is:
+#'   - `FALSE` (default), _invisibly_ returns a data frame created by the internal process
+#'   to create the tabset. It is the original dataframe with the column
+#'   marked `TRUE` added to the row that begins or ends the heading
+#'   of the tabset (e.g. `tabset1_start__`. `tabset1_end__` etc.).
+#'   And factor columns specified in `tabset_vars` or `output_vars` are
+#'   converted to charactor columns.
+#'   - `TRUE`, _explicitly_ return the same data frame as for `FALSE`.
+#'   In this case, no printing to create a tabset is performed.
 #' @examples
 #' # sample data
 #' df <- data.frame(
@@ -83,12 +98,19 @@
 #' )
 #' @export
 quarto_tabset <- function(
-  data,
-  tabset_vars,
-  output_vars,
-  layout = NULL,
-  heading_levels = NULL
+    data,
+    tabset_vars,
+    output_vars,
+    layout = NULL,
+    heading_levels = NULL,
+    return_data = FALSE
 ) {
+  # stopifnot(
+  #   "`return_data` must be a `TRUE` or `FALSE`" =
+  #     isTRUE(return_data) || isFALSE(return_data)
+  # )
+  assert_logical_scalar(return_data)
+
   l <- do.call(
     validate_data,
     list(
@@ -110,6 +132,10 @@ quarto_tabset <- function(
     tabset_names,
     output_names
   )
+
+  if (isTRUE(return_data)) {
+    return(data)
+  }
 
   # For each row of the data, print the tabset and output panels ----
   lapply(
@@ -167,9 +193,10 @@ quarto_tabset <- function(
       )
 
       # Print the layout if it exists
-      if (!is.null(layout)) {
-        cat(layout, "\n\n")
-      }
+      # if (!is.null(layout)) {
+      #   cat(layout, "\n\n")
+      # }
+      cat_if_not_null(layout, paste(layout, "\n\n"))
 
       # Print the outputs
       lapply(
@@ -195,9 +222,10 @@ quarto_tabset <- function(
       )
 
       # Close layout-div if layout exists
-      if (!is.null(layout)) {
-        cat(sub("^(:+).*", "\\1", layout), "\n\n")
-      }
+      # if (!is.null(layout)) {
+      #   cat(sub("^(:+).*", "\\1", layout), "\n\n")
+      # }
+      cat_if_not_null(layout, paste(sub("^(:+).*", "\\1", layout), "\n\n"))
 
       # Loop through each tabset column in reverse order.
       # (To close from the inner tabset.)
@@ -207,7 +235,7 @@ quarto_tabset <- function(
           # Check if this row contains a column
           # for the end of the current tabset
           if (is.na(heading_levels[j]) &&
-                data[[i, paste0("tabset", j, "_end__")]]) {
+              data[[i, paste0("tabset", j, "_end__")]]) {
             # Close the panel-tabset div
             cat("::: \n\n")
           }
@@ -219,14 +247,13 @@ quarto_tabset <- function(
   invisible(data)
 }
 
-
 #' @noRd
 validate_data <- function(
-  data,
-  tabset_vars,
-  output_vars,
-  layout = NULL,
-  heading_levels = NULL
+    data,
+    tabset_vars,
+    output_vars,
+    layout = NULL,
+    heading_levels = NULL
 ) {
   stopifnot(
     "`data` must be a data frame" =
@@ -288,7 +315,7 @@ validate_data <- function(
 
   tabset_classes <- vapply(
     data[, tabset_names, drop = FALSE],
-    class,
+    typeof,
     character(1)
   )
 
@@ -351,7 +378,6 @@ validate_data <- function(
   )
 }
 
-
 #' @noRd
 prep_data <- function(data, tabset_names, output_names) {
   len_tab <- length(tabset_names)
@@ -394,4 +420,22 @@ prep_data <- function(data, tabset_names, output_names) {
   }
 
   data
+}
+
+assert_logical_scalar <- function(x) {
+  if (isTRUE(x) || isFALSE(x)) {
+    return(invisible(x))
+  }
+
+  msg <- sprintf(
+    "`%s` must be a `TRUE` or a `FALSE`.",
+    deparse(substitute(x))
+  )
+  stop(msg)
+}
+
+cat_if_not_null <- function(string, sentence) {
+  if (!is.null(string)) {
+    cat(sentence)
+  }
 }

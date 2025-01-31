@@ -9,7 +9,8 @@ quarto_tabset(
   tabset_vars,
   output_vars,
   layout = NULL,
-  heading_levels = NULL
+  heading_levels = NULL,
+  return_data = FALSE
 )
 }
 \arguments{
@@ -41,9 +42,28 @@ it is preferable to gradually increase the level, as in 1, 2 and 3.
 \item If the element is NA, tabset is displayed.
 }
 }}
+
+\item{retrun_data}{A logical (defaults to \code{FALSE}).
+If \code{TRUE}, returns a data frame created by the internal process
+to create the tabset. It is the original dataframe with the column
+marked \code{TRUE} added to the row that begins or ends the heading
+of the tabset (e.g. \code{tabset1_start__}. \code{tabset1_end__} etc.).
+And factor columns specified in \code{tabset_vars} or \code{output_vars} are
+converted to charactor columns.
+In this case, no printing to create a tabset is performed.}
 }
 \value{
-\code{NULL} invisibly. (Create tabsest/heading as a side effect.)
+If \code{retrun_data} is:
+\itemize{
+\item \code{FALSE} (default), \emph{invisibly} returns a data frame created by the internal process
+to create the tabset. It is the original dataframe with the column
+marked \code{TRUE} added to the row that begins or ends the heading
+of the tabset (e.g. \code{tabset1_start__}. \code{tabset1_end__} etc.).
+And factor columns specified in \code{tabset_vars} or \code{output_vars} are
+converted to charactor columns.
+\item \code{TRUE}, \emph{explicitly} return the same data frame as for \code{FALSE}.
+In this case, no printing to create a tabset is performed.
+}
 }
 \description{
 The function takes in a data frame or a tibble and produces

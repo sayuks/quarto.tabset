@@ -1,12 +1,12 @@
-test_that("quarto_tabset(), basic", {
-  df_sample <- data.frame(
-    group1 = factor(c(rep("A", 3), rep("B", 3))),
-    group2 = rep(c("X", "Y", "Z"), 2),
-    var1 = 1:6,
-    var2 = 7:12,
-    var3 = factor(letters[1:6])
-  )
+df_sample <- data.frame(
+  group1 = factor(c(rep("A", 3), rep("B", 3))),
+  group2 = rep(c("X", "Y", "Z"), 2),
+  var1 = 1:6,
+  var2 = 7:12,
+  var3 = factor(letters[1:6])
+)
 
+test_that("quarto_tabset(), basic", {
   expected <-
     c(
       "::: {.panel-tabset} ",
@@ -98,14 +98,6 @@ test_that("quarto_tabset(), basic", {
 })
 
 test_that("quarto_tabset(), layout argument", {
-  df_sample <- data.frame(
-    group1 = factor(c(rep("A", 3), rep("B", 3))),
-    group2 = rep(c("X", "Y", "Z"), 2),
-    var1 = 1:6,
-    var2 = 7:12,
-    var3 = factor(letters[1:6])
-  )
-
   expected <-
     c(
       "::: {.panel-tabset} ",
@@ -212,14 +204,6 @@ test_that("quarto_tabset(), layout argument", {
 })
 
 test_that("quarto_tabset(), heading_levels argument", {
-  df_sample <- data.frame(
-    group1 = factor(c(rep("A", 3), rep("B", 3))),
-    group2 = rep(c("X", "Y", "Z"), 2),
-    var1 = 1:6,
-    var2 = 7:12,
-    var3 = factor(letters[1:6])
-  )
-
   expected <-
     c(
       "# A ",
@@ -290,14 +274,6 @@ test_that("quarto_tabset(), heading_levels argument", {
 })
 
 test_that("quarto_tabset(), heading_levels argument with NA", {
-  df_sample <- data.frame(
-    group1 = factor(c(rep("A", 3), rep("B", 3))),
-    group2 = rep(c("X", "Y", "Z"), 2),
-    var1 = 1:6,
-    var2 = 7:12,
-    var3 = factor(letters[1:6])
-  )
-
   expected <-
     c(
       "# A ",
@@ -376,14 +352,6 @@ test_that("quarto_tabset(), heading_levels argument with NA", {
 })
 
 test_that("quarto_tabset(), both layout and heading_levels arguments", {
-  df_sample <- data.frame(
-    group1 = factor(c(rep("A", 3), rep("B", 3))),
-    group2 = rep(c("X", "Y", "Z"), 2),
-    var1 = 1:6,
-    var2 = 7:12,
-    var3 = factor(letters[1:6])
-  )
-
   expected <-
     c(
       "# A ",
