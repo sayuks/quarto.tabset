@@ -45,15 +45,6 @@
 #'    text. In addition, considering the chapter format,
 #'    it is preferable to gradually increase the level, as in 1, 2 and 3.
 #'    * If the element is NA, tabset is displayed.
-#' @param retrun_data A logical (defaults to `FALSE`).
-#'   If `TRUE`, returns a data frame created by the internal process
-#'   to create the tabset. It is the original dataframe with the column
-#'   marked `TRUE` added to the row that begins or ends the heading
-#'   of the tabset (e.g. `tabset1_start__`. `tabset1_end__` etc.).
-#'   And factor columns specified in `tabset_vars` or `output_vars` are
-#'   converted to charactor columns.
-#'   In this case, no printing to create a tabset is performed.
-#'
 #' @return If `retrun_data` is:
 #'   - `FALSE` (default), _invisibly_ returns a data frame created by the internal process
 #'   to create the tabset. It is the original dataframe with the column
@@ -102,15 +93,8 @@ quarto_tabset <- function(
     tabset_vars,
     output_vars,
     layout = NULL,
-    heading_levels = NULL,
-    return_data = FALSE
+    heading_levels = NULL
 ) {
-  # stopifnot(
-  #   "`return_data` must be a `TRUE` or `FALSE`" =
-  #     isTRUE(return_data) || isFALSE(return_data)
-  # )
-  assert_logical_scalar(return_data)
-
   l <- do.call(
     validate_data,
     list(
@@ -132,10 +116,6 @@ quarto_tabset <- function(
     tabset_names,
     output_names
   )
-
-  if (isTRUE(return_data)) {
-    return(data)
-  }
 
   # For each row of the data, print the tabset and output panels ----
   lapply(
@@ -193,10 +173,10 @@ quarto_tabset <- function(
       )
 
       # Print the layout if it exists
-      # if (!is.null(layout)) {
-      #   cat(layout, "\n\n")
-      # }
-      cat_if_not_null(layout, paste(layout, "\n\n"))
+      if (!is.null(layout)) {
+        cat(layout, "\n\n")
+      }
+      # cat_if_not_null(layout, paste(layout, "\n\n"))
 
       # Print the outputs
       lapply(
@@ -222,10 +202,10 @@ quarto_tabset <- function(
       )
 
       # Close layout-div if layout exists
-      # if (!is.null(layout)) {
-      #   cat(sub("^(:+).*", "\\1", layout), "\n\n")
-      # }
-      cat_if_not_null(layout, paste(sub("^(:+).*", "\\1", layout), "\n\n"))
+      if (!is.null(layout)) {
+        cat(sub("^(:+).*", "\\1", layout), "\n\n")
+      }
+      # cat_if_not_null(layout, paste(sub("^(:+).*", "\\1", layout), "\n\n"))
 
       # Loop through each tabset column in reverse order.
       # (To close from the inner tabset.)
@@ -386,7 +366,6 @@ prep_data <- function(data, tabset_names, output_names) {
     data[, c(tabset_names, output_names)],
     function(x) if (is.factor(x)) as.character(x) else x
   )
-  rn <- rownames(data)
 
   data <- Reduce(
     f = function(df, idx) {
@@ -413,12 +392,6 @@ prep_data <- function(data, tabset_names, output_names) {
     init = data
   )
 
-  rownames(data) <- NULL
-
-  if (!identical(rn, as.character(seq_len(nrow(data))))) {
-    rownames(data) <- rn
-  }
-
   data
 }
 
@@ -432,10 +405,4 @@ assert_logical_scalar <- function(x) {
     deparse(substitute(x))
   )
   stop(msg)
-}
-
-cat_if_not_null <- function(string, sentence) {
-  if (!is.null(string)) {
-    cat(sentence)
-  }
 }
