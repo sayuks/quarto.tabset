@@ -25,20 +25,6 @@ test_that("prep_data orders and adds start/end columns correctly", {
   expect_equal(output, expected_output)
 })
 
-test_that("prep_data keeps original rownames if they are not sequential", {
-  data_with_rownames <- data
-  rownames(data_with_rownames) <- c("a", "b", "c", "d")
-  output <- prep_data(data_with_rownames, c("group1", "group2"), c("value"))
-  expect_equal(rownames(output), rownames(data_with_rownames))
-})
-
-test_that("prep_data treats fator correctly", {
-  data_with_rownames <- data
-  rownames(data_with_rownames) <- c("a", "b", "c", "d")
-  output <- prep_data(data_with_rownames, c("group1", "group2"), c("value"))
-  expect_equal(rownames(output), rownames(data_with_rownames))
-})
-
 test_that("prep_data handles single grouping variable correctly", {
   single_group_data <- data.frame(
     group1 = c("A", "A", "B", "B"),

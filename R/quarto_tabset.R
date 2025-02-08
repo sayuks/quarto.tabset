@@ -392,6 +392,8 @@ prep_data <- function(data, tabset_names, output_names) {
     init = data
   )
 
+  rownames(data) <- NULL
+
   data
 }
 
