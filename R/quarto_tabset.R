@@ -398,15 +398,3 @@ prep_data <- function(data, tabset_names, output_names) {
 
   z
 }
-
-assert_logical_scalar <- function(x) {
-  if (isTRUE(x) || isFALSE(x)) {
-    return(invisible(x))
-  }
-
-  msg <- sprintf(
-    "`%s` must be a `TRUE` or a `FALSE`.",
-    deparse(substitute(x))
-  )
-  stop(msg)
-}
