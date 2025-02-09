@@ -367,34 +367,36 @@ prep_data <- function(data, tabset_names, output_names) {
     function(x) if (is.factor(x)) as.character(x) else x
   )
 
-  data <- Reduce(
+  res <- data.frame(matrix(ncol = 0, nrow = nrow(data)))
+
+  z <- Reduce(
     f = function(df, idx) {
       gvars <- tabset_names[seq_len(idx) - 1]
 
       if (length(gvars) > 0) {
-        df <- split(df, df[gvars])
+        df1 <- split(data, data[gvars])
       } else {
-        df <- list(df)
+        df1 <- list(df)
       }
 
-      df <- lapply(df, function(group) {
+      l_df <- lapply(df1, function(group) {
         n <- nrow(group)
-        group[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
-        group[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
-        group
+        df[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
+        df[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
+        df
       })
 
-      df <- do.call(rbind, df)
+      out <- do.call(rbind, l_df)
 
-      df
+      out
     },
     x = seq_len(len_tab),
-    init = data
+    init = res
   )
 
   rownames(data) <- NULL
 
-  data
+  z
 }
 
 assert_logical_scalar <- function(x) {
