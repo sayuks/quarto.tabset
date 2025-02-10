@@ -12,10 +12,6 @@ test_that("prep_data orders and adds start/end columns correctly", {
 
   # Expected output after prep_data
   expected_output <- data.frame(
-    group1 = rep(c("A", "B"), each = 2L),
-    group2 = rep(c("X", "Y"), 2),
-    group3 = factor(c("a", "b", "c", "d")),
-    value = seq(1, 4, by = 1),
     tabset1_start__ = c(TRUE, FALSE, FALSE, FALSE),
     tabset1_end__ = c(FALSE, FALSE, FALSE, TRUE),
     tabset2_start__ = rep(c(TRUE, FALSE), 2),

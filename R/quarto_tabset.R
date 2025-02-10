@@ -379,14 +379,27 @@ prep_data <- function(data, tabset_names, output_names) {
         df1 <- list(df)
       }
 
-      l_df <- lapply(df1, function(group) {
+      print("# df----")
+      print(df)
+      print("# df1 ----")
+      print(df1)
+
+      out <- lapply(df1, function(group) {
         n <- nrow(group)
-        df[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
-        df[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
-        df
+
+        tmp <- data.frame(matrix(ncol = 0, nrow = n))
+        tmp[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
+        tmp[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
+        # print("# df inner ----")
+        # print(df)
+        # do.call(rbind, df)
+        tmp
       })
 
-      out <- do.call(rbind, l_df)
+      out <- do.call(rbind, out)
+
+      print("out")
+      print(out)
 
       out
     },
@@ -394,7 +407,7 @@ prep_data <- function(data, tabset_names, output_names) {
     init = res
   )
 
-  rownames(data) <- NULL
+  rownames(z) <- NULL
 
   z
 }
