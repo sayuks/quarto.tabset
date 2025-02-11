@@ -45,15 +45,7 @@
 #'    text. In addition, considering the chapter format,
 #'    it is preferable to gradually increase the level, as in 1, 2 and 3.
 #'    * If the element is NA, tabset is displayed.
-#' @return If `retrun_data` is:
-#'   - `FALSE` (default), _invisibly_ returns a data frame created by the internal process
-#'   to create the tabset. It is the original dataframe with the column
-#'   marked `TRUE` added to the row that begins or ends the heading
-#'   of the tabset (e.g. `tabset1_start__`. `tabset1_end__` etc.).
-#'   And factor columns specified in `tabset_vars` or `output_vars` are
-#'   converted to charactor columns.
-#'   - `TRUE`, _explicitly_ return the same data frame as for `FALSE`.
-#'   In this case, no printing to create a tabset is performed.
+#' @return `NULL` invisibly. This function is called for its side effect.
 #' @examples
 #' # sample data
 #' df <- data.frame(
@@ -89,11 +81,11 @@
 #' )
 #' @export
 quarto_tabset <- function(
-    data,
-    tabset_vars,
-    output_vars,
-    layout = NULL,
-    heading_levels = NULL
+  data,
+  tabset_vars,
+  output_vars,
+  layout = NULL,
+  heading_levels = NULL
 ) {
   l <- do.call(
     validate_data,
@@ -111,18 +103,19 @@ quarto_tabset <- function(
   heading_levels <- l$heading_levels
   len_tab <- length(tabset_names)
 
-  data <- prep_data(
+  data <- prep_data(data, tabset_names, output_names)
+
+  tabset_master <- get_tabset_master(
     data,
-    tabset_names,
-    output_names
+    tabset_names
   )
 
   # For each row of the data, print the tabset and output panels ----
   lapply(
     seq_len(nrow(data)),
     function(i) {
-      # Check if this row contains a tabset1_start__ column
-      if (is.na(heading_levels[1]) && data[[i, "tabset1_start__"]]) {
+      # Check if this row contains a tabset1_start column
+      if (is.na(heading_levels[1]) && tabset_master[[i, "tabset1_start"]]) {
         # Add a panel-tabset div
         cat("::: {.panel-tabset} \n\n")
       }
@@ -134,7 +127,7 @@ quarto_tabset <- function(
           function(j) {
             # Check if this row contains a column
             # for the start of the current tabset
-            if (data[[i, paste0("tabset", j, "_start__")]]) {
+            if (tabset_master[[i, paste0("tabset", j, "_start")]]) {
 
               # Print the heading
               heading_level <- heading_levels[j - 1]
@@ -176,7 +169,6 @@ quarto_tabset <- function(
       if (!is.null(layout)) {
         cat(layout, "\n\n")
       }
-      # cat_if_not_null(layout, paste(layout, "\n\n"))
 
       # Print the outputs
       lapply(
@@ -205,7 +197,6 @@ quarto_tabset <- function(
       if (!is.null(layout)) {
         cat(sub("^(:+).*", "\\1", layout), "\n\n")
       }
-      # cat_if_not_null(layout, paste(sub("^(:+).*", "\\1", layout), "\n\n"))
 
       # Loop through each tabset column in reverse order.
       # (To close from the inner tabset.)
@@ -215,7 +206,7 @@ quarto_tabset <- function(
           # Check if this row contains a column
           # for the end of the current tabset
           if (is.na(heading_levels[j]) &&
-              data[[i, paste0("tabset", j, "_end__")]]) {
+                tabset_master[[i, paste0("tabset", j, "_end")]]) {
             # Close the panel-tabset div
             cat("::: \n\n")
           }
@@ -224,16 +215,16 @@ quarto_tabset <- function(
     }
   )
 
-  invisible(data)
+  invisible()
 }
 
 #' @noRd
 validate_data <- function(
-    data,
-    tabset_vars,
-    output_vars,
-    layout = NULL,
-    heading_levels = NULL
+  data,
+  tabset_vars,
+  output_vars,
+  layout = NULL,
+  heading_levels = NULL
 ) {
   stopifnot(
     "`data` must be a data frame" =
@@ -318,29 +309,12 @@ validate_data <- function(
       length(heading_levels) == len_tab
   )
 
-  tabset_flag_names <- unlist(
-    lapply(
-      paste0("tabset", seq_len(len_tab)),
-      function(x) paste0(x, "_", c("start", "end"), "__")
-    )
-  )
-
-  tabset_flag_names_used <- intersect(colnames(data), tabset_flag_names)
-
-  if (length(tabset_flag_names_used) > 0) {
-    stop(
-      "The following column names conflict with the column names ",
-      "that represent the beginning and end of the tabset ",
-      "that will be created internally. Consider renaming the columns.:\n",
-      toString(tabset_flag_names_used)
-    )
-  }
-
   # Get output column names from data based on output_vars
   output_names <- do.call(
     subset,
     list(x = data, select = substitute(output_vars))
   )
+
   output_names <- colnames(output_names)
 
   stopifnot(
@@ -360,54 +334,47 @@ validate_data <- function(
 
 #' @noRd
 prep_data <- function(data, tabset_names, output_names) {
-  len_tab <- length(tabset_names)
+  data <- data[, c(tabset_names, output_names)]
   data <- data[do.call(order, data[, tabset_names, drop = FALSE]), ]
-  data[, c(tabset_names, output_names)] <- lapply(
-    data[, c(tabset_names, output_names)],
+  data[] <- lapply(
+    data,
     function(x) if (is.factor(x)) as.character(x) else x
   )
+  data
+}
 
-  res <- data.frame(matrix(ncol = 0, nrow = nrow(data)))
+#' @noRd
+get_tabset_master <- function(data, tabset_names) {
+  len_tab <- length(tabset_names)
 
-  z <- Reduce(
-    f = function(df, idx) {
+  res <- lapply(
+    seq_len(len_tab),
+    function(idx) {
       gvars <- tabset_names[seq_len(idx) - 1]
 
-      if (length(gvars) > 0) {
-        df1 <- split(data, data[gvars])
+      l <- if (length(gvars) > 0) {
+        split(data, data[gvars])
       } else {
-        df1 <- list(df)
+        list(data)
       }
 
-      print("# df----")
-      print(df)
-      print("# df1 ----")
-      print(df1)
+      a <- lapply(
+        l,
+        function(df) {
+          n <- nrow(df)
+          tmp <- data.frame(matrix(ncol = 0, nrow = n))
+          tmp[paste0("tabset", idx, "_start")] <- c(TRUE, rep(FALSE, n - 1))
+          tmp[paste0("tabset", idx, "_end")] <- c(rep(FALSE, n - 1), TRUE)
+          tmp
+        }
+      )
 
-      out <- lapply(df1, function(group) {
-        n <- nrow(group)
 
-        tmp <- data.frame(matrix(ncol = 0, nrow = n))
-        tmp[paste0("tabset", idx, "_start__")] <- c(TRUE, rep(FALSE, n - 1))
-        tmp[paste0("tabset", idx, "_end__")] <- c(rep(FALSE, n - 1), TRUE)
-        # print("# df inner ----")
-        # print(df)
-        # do.call(rbind, df)
-        tmp
-      })
-
-      out <- do.call(rbind, out)
-
-      print("out")
-      print(out)
-
-      out
-    },
-    x = seq_len(len_tab),
-    init = res
+      do.call(rbind, a)
+    }
   )
 
-  rownames(z) <- NULL
-
-  z
+  res <- do.call(cbind, res)
+  rownames(res) <- NULL
+  res
 }
