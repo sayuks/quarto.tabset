@@ -8,6 +8,7 @@
 [![R-CMD-check](https://github.com/sayuks/quarto.tabset/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sayuks/quarto.tabset/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/sayuks/quarto.tabset/graph/badge.svg)](https://app.codecov.io/gh/sayuks/quarto.tabset)
+[![lint.yaml](https://github.com/sayuks/quarto.tabset/actions/workflows/lint.yaml/badge.svg)](https://github.com/sayuks/quarto.tabset/actions/workflows/lint.yaml)
 <!-- badges: end -->
 
 The goal of quarto.tabset is to …
