@@ -4,3 +4,6 @@
 ^cran-comments\.md$
 ^\.github$
 ^README\.Rmd$
+^docs$
+^altdoc$
+^_quarto$
