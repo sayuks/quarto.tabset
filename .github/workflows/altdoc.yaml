@@ -41,6 +41,9 @@ jobs:
           # future::plan(future::multicore)
           install.packages(".", repos = NULL, type = "source")
           install.packages("pkgload")
+          # bug #314
+          install.packages("remotes")
+          remotes::install_github("etiennebacher/altdoc", ref = "61b9ab762990815e73c7217f9480f474f330755f")
           pkgload::load_all()
           altdoc::render_docs(parallel = FALSE, freeze = FALSE)
         shell: Rscript {0}
