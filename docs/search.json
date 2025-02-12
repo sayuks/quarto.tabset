@@ -1,0 +1,103 @@
+[
+  {
+    "objectID": "vignettes/test.html",
+    "href": "vignettes/test.html",
+    "title": "quarto.tabset",
+    "section": "",
+    "text": "library(quarto.tabset)\n\ndf_sample &lt;- data.frame(\n  group1 = factor(c(rep(\"A\", 3), rep(\"B\", 3))),\n  group2 = rep(c(\"X\", \"Y\", \"Z\"), 2),\n  var1 = 1:6,\n  var2 = 7:12,\n  var3 = factor(letters[1:6])\n)\n\nquarto_tabset(df_sample, c(group1, group2), c(var1, var2, var3))\n\n\nA\nB\n\n\n\n\n\nX\nY\nZ\n\n\n\n1\n7\na\n\n\n2\n8\nb\n\n\n3\n9\nc\n\n\n\n\n\n\n\nX\nY\nZ\n\n\n\n4\n10\nd\n\n\n5\n11\ne\n\n\n6\n12\nf",
+    "crumbs": [
+      "Articles",
+      "demo"
+    ]
+  },
+  {
+    "objectID": "vignettes/test.html#demo",
+    "href": "vignettes/test.html#demo",
+    "title": "quarto.tabset",
+    "section": "",
+    "text": "library(quarto.tabset)\n\ndf_sample &lt;- data.frame(\n  group1 = factor(c(rep(\"A\", 3), rep(\"B\", 3))),\n  group2 = rep(c(\"X\", \"Y\", \"Z\"), 2),\n  var1 = 1:6,\n  var2 = 7:12,\n  var3 = factor(letters[1:6])\n)\n\nquarto_tabset(df_sample, c(group1, group2), c(var1, var2, var3))\n\n\nA\nB\n\n\n\n\n\nX\nY\nZ\n\n\n\n1\n7\na\n\n\n2\n8\nb\n\n\n3\n9\nc\n\n\n\n\n\n\n\nX\nY\nZ\n\n\n\n4\n10\nd\n\n\n5\n11\ne\n\n\n6\n12\nf",
+    "crumbs": [
+      "Articles",
+      "demo"
+    ]
+  },
+  {
+    "objectID": "man/quarto_tabset.html",
+    "href": "man/quarto_tabset.html",
+    "title": "quarto.tabset",
+    "section": "",
+    "text": "The function takes in a data frame or a tibble and produces tabset panels for each unique combination of the tabset variables. Only works with .qmd files in HTML format.\n\nquarto_tabset(\n  data,\n  tabset_vars,\n  output_vars,\n  layout = NULL,\n  heading_levels = NULL\n)\n\n\n\n\n\ndata\n\n\nA data frame.\n\n\n\n\ntabset_vars\n\n\nVariables to use as tabset labels.\n\n\n\n\noutput_vars\n\n\nVariables to display in each tabset panel.\n\n\n\n\nlayout\n\n\nNULL or a character vector of length 1 for specifying layout in tabset panel. If not NULL, layout must begin with at least three or more repetitions of \":\" (e.g. \":::\").\n\n\n\n\nheading_levels\n\n\nNULL or a positive integer-ish numeric vector of length equal to the number of columns specified in tabset_vars. This controls whether it is partially (or entirely) displayed as normal header instead of tabset.\n\n\nIf NULL, all output is tabset.\n\n\nIf a positive integer-ish numeric vector, the elements of the vector correspond to the columns specified in tabset_vars.\n\n\nIf the element is integer, the tabset column is displayed as headers with their level, not tabset. (e.g. 2 means h2 header). Levels 1 to 6 are recommended. The reason is that quarto supports headers up to 6. 7 and above will also work, but they are displayed as normal text. In addition, considering the chapter format, it is preferable to gradually increase the level, as in 1, 2 and 3.\n\n\nIf the element is NA, tabset is displayed.\n\n\n\n\n\n\n\n\n\nWrite #| results: asis at the beginning of the chunk or results=‘asis’ in the chunk options.\n\n\nThe data is sorted internally in the order of tabset_vars. Define the order beforehand, e.g. using factor.\n\n\nIf multiple tabset_vars are given, create nested tabsets.\n\n\noutput_vars can also be figures or tables if data is a tibble.\n\n\nIf factor columns are included in output_vars, they are converted internally to character.\n\n\nWhen outputting tables or figures that use javascript (such as plotly, leaflet, DT, reactable, etc.), it seems javascript dependencies need to be resolved. A simple solution is to wrap the output in htmltools::div() and create a dummy plot in another chunk. See the demo page for details.\n\n\nThe function has an optional argument, layout, which allows for the addition of layout option to the outputs (see https://quarto.org/docs/authoring/figures.html). However, this is intended for simplified use cases and complex layouts may not work. See Examples for more details.\n\n\nNULL invisibly. This function is called for its side effect.\n\n\nlibrary(\"quarto.tabset\")\n\n# sample data\ndf &lt;- data.frame(\n  group1 = c(rep(\"A\", 3), rep(\"B\", 3)),\n  group2 = rep(c(\"X\", \"Y\", \"Z\"), 2),\n  var1 = rnorm(6),\n  var2 = rnorm(6),\n  var3 = rnorm(6)\n)\n\n# Here are examples of the output before it is converted to tabset.\n# If you want it to actually work, in the .qmd file,\n# set `results='asis'` in the chunk options or\n# write `#| results: asis` at the beginning of the chunk.\n\n# Basic usage\nquarto_tabset(df, c(group1, group2), c(var1, var2, var3))\n\n::: {.panel-tabset} \n\n# A \n\n::: {.panel-tabset} \n\n## X \n\n0.7068598\n\n-0.2151134\n\n-0.09349478\n\n## Y \n\n-1.121921\n\n-1.230975\n\n-0.1572016\n\n## Z \n\n-0.819094\n\n-1.039161\n\n-0.2254501\n\n::: \n\n# B \n\n::: {.panel-tabset} \n\n## X \n\n-0.9232121\n\n-0.3751852\n\n1.013068\n\n## Y \n\n-0.895171\n\n-0.357521\n\n2.167596\n\n## Z \n\n-0.4490298\n\n-1.271584\n\n-0.7462634\n\n::: \n\n::: \n\n# Here is an example of the `layout` argument.\nquarto_tabset(\n  df,\n  c(group1, group2),\n  c(var1, var2, var3),\n  layout = '::: {layout=\"[2, 3, 5]\"}'\n)\n\n::: {.panel-tabset} \n\n# A \n\n::: {.panel-tabset} \n\n## X \n\n::: {layout=\"[2, 3, 5]\"} \n\n0.7068598\n\n-0.2151134\n\n-0.09349478\n\n::: \n\n## Y \n\n::: {layout=\"[2, 3, 5]\"} \n\n-1.121921\n\n-1.230975\n\n-0.1572016\n\n::: \n\n## Z \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.819094\n\n-1.039161\n\n-0.2254501\n\n::: \n\n::: \n\n# B \n\n::: {.panel-tabset} \n\n## X \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.9232121\n\n-0.3751852\n\n1.013068\n\n::: \n\n## Y \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.895171\n\n-0.357521\n\n2.167596\n\n::: \n\n## Z \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.4490298\n\n-1.271584\n\n-0.7462634\n\n::: \n\n::: \n\n::: \n\n# Use heading instead of tabset\nquarto_tabset(\n  df,\n  c(group1, group2),\n  c(var1, var2, var3),\n  heading_levels = c(2, 3)\n)\n\n## A \n\n### X \n\n0.7068598\n\n-0.2151134\n\n-0.09349478\n\n### Y \n\n-1.121921\n\n-1.230975\n\n-0.1572016\n\n### Z \n\n-0.819094\n\n-1.039161\n\n-0.2254501\n\n## B \n\n### X \n\n-0.9232121\n\n-0.3751852\n\n1.013068\n\n### Y \n\n-0.895171\n\n-0.357521\n\n2.167596\n\n### Z \n\n-0.4490298\n\n-1.271584\n\n-0.7462634",
+    "crumbs": [
+      "Reference",
+      "quarto_tabset"
+    ]
+  },
+  {
+    "objectID": "man/quarto_tabset.html#create-tabset-panels-in-quarto-markdown",
+    "href": "man/quarto_tabset.html#create-tabset-panels-in-quarto-markdown",
+    "title": "quarto.tabset",
+    "section": "",
+    "text": "The function takes in a data frame or a tibble and produces tabset panels for each unique combination of the tabset variables. Only works with .qmd files in HTML format.\n\nquarto_tabset(\n  data,\n  tabset_vars,\n  output_vars,\n  layout = NULL,\n  heading_levels = NULL\n)\n\n\n\n\n\ndata\n\n\nA data frame.\n\n\n\n\ntabset_vars\n\n\nVariables to use as tabset labels.\n\n\n\n\noutput_vars\n\n\nVariables to display in each tabset panel.\n\n\n\n\nlayout\n\n\nNULL or a character vector of length 1 for specifying layout in tabset panel. If not NULL, layout must begin with at least three or more repetitions of \":\" (e.g. \":::\").\n\n\n\n\nheading_levels\n\n\nNULL or a positive integer-ish numeric vector of length equal to the number of columns specified in tabset_vars. This controls whether it is partially (or entirely) displayed as normal header instead of tabset.\n\n\nIf NULL, all output is tabset.\n\n\nIf a positive integer-ish numeric vector, the elements of the vector correspond to the columns specified in tabset_vars.\n\n\nIf the element is integer, the tabset column is displayed as headers with their level, not tabset. (e.g. 2 means h2 header). Levels 1 to 6 are recommended. The reason is that quarto supports headers up to 6. 7 and above will also work, but they are displayed as normal text. In addition, considering the chapter format, it is preferable to gradually increase the level, as in 1, 2 and 3.\n\n\nIf the element is NA, tabset is displayed.\n\n\n\n\n\n\n\n\n\nWrite #| results: asis at the beginning of the chunk or results=‘asis’ in the chunk options.\n\n\nThe data is sorted internally in the order of tabset_vars. Define the order beforehand, e.g. using factor.\n\n\nIf multiple tabset_vars are given, create nested tabsets.\n\n\noutput_vars can also be figures or tables if data is a tibble.\n\n\nIf factor columns are included in output_vars, they are converted internally to character.\n\n\nWhen outputting tables or figures that use javascript (such as plotly, leaflet, DT, reactable, etc.), it seems javascript dependencies need to be resolved. A simple solution is to wrap the output in htmltools::div() and create a dummy plot in another chunk. See the demo page for details.\n\n\nThe function has an optional argument, layout, which allows for the addition of layout option to the outputs (see https://quarto.org/docs/authoring/figures.html). However, this is intended for simplified use cases and complex layouts may not work. See Examples for more details.\n\n\nNULL invisibly. This function is called for its side effect.\n\n\nlibrary(\"quarto.tabset\")\n\n# sample data\ndf &lt;- data.frame(\n  group1 = c(rep(\"A\", 3), rep(\"B\", 3)),\n  group2 = rep(c(\"X\", \"Y\", \"Z\"), 2),\n  var1 = rnorm(6),\n  var2 = rnorm(6),\n  var3 = rnorm(6)\n)\n\n# Here are examples of the output before it is converted to tabset.\n# If you want it to actually work, in the .qmd file,\n# set `results='asis'` in the chunk options or\n# write `#| results: asis` at the beginning of the chunk.\n\n# Basic usage\nquarto_tabset(df, c(group1, group2), c(var1, var2, var3))\n\n::: {.panel-tabset} \n\n# A \n\n::: {.panel-tabset} \n\n## X \n\n0.7068598\n\n-0.2151134\n\n-0.09349478\n\n## Y \n\n-1.121921\n\n-1.230975\n\n-0.1572016\n\n## Z \n\n-0.819094\n\n-1.039161\n\n-0.2254501\n\n::: \n\n# B \n\n::: {.panel-tabset} \n\n## X \n\n-0.9232121\n\n-0.3751852\n\n1.013068\n\n## Y \n\n-0.895171\n\n-0.357521\n\n2.167596\n\n## Z \n\n-0.4490298\n\n-1.271584\n\n-0.7462634\n\n::: \n\n::: \n\n# Here is an example of the `layout` argument.\nquarto_tabset(\n  df,\n  c(group1, group2),\n  c(var1, var2, var3),\n  layout = '::: {layout=\"[2, 3, 5]\"}'\n)\n\n::: {.panel-tabset} \n\n# A \n\n::: {.panel-tabset} \n\n## X \n\n::: {layout=\"[2, 3, 5]\"} \n\n0.7068598\n\n-0.2151134\n\n-0.09349478\n\n::: \n\n## Y \n\n::: {layout=\"[2, 3, 5]\"} \n\n-1.121921\n\n-1.230975\n\n-0.1572016\n\n::: \n\n## Z \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.819094\n\n-1.039161\n\n-0.2254501\n\n::: \n\n::: \n\n# B \n\n::: {.panel-tabset} \n\n## X \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.9232121\n\n-0.3751852\n\n1.013068\n\n::: \n\n## Y \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.895171\n\n-0.357521\n\n2.167596\n\n::: \n\n## Z \n\n::: {layout=\"[2, 3, 5]\"} \n\n-0.4490298\n\n-1.271584\n\n-0.7462634\n\n::: \n\n::: \n\n::: \n\n# Use heading instead of tabset\nquarto_tabset(\n  df,\n  c(group1, group2),\n  c(var1, var2, var3),\n  heading_levels = c(2, 3)\n)\n\n## A \n\n### X \n\n0.7068598\n\n-0.2151134\n\n-0.09349478\n\n### Y \n\n-1.121921\n\n-1.230975\n\n-0.1572016\n\n### Z \n\n-0.819094\n\n-1.039161\n\n-0.2254501\n\n## B \n\n### X \n\n-0.9232121\n\n-0.3751852\n\n1.013068\n\n### Y \n\n-0.895171\n\n-0.357521\n\n2.167596\n\n### Z \n\n-0.4490298\n\n-1.271584\n\n-0.7462634",
+    "crumbs": [
+      "Reference",
+      "quarto_tabset"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "quarto.tabset",
+    "section": "",
+    "text": "The goal of quarto.tabset is to …\n\n\nYou can install the development version of quarto.tabset from GitHub with:\n# install.packages(\"pak\")\npak::pak(\"sayuks/quarto.tabset\")\n\n\n\nThis is a basic example which shows you how to solve a common problem:\nlibrary(quarto.tabset)\n## basic example code\nWhat is special about using README.Rmd instead of just README.md? You can include R chunks like so:\nsummary(cars)\n#&gt;      speed           dist       \n#&gt;  Min.   : 4.0   Min.   :  2.00  \n#&gt;  1st Qu.:12.0   1st Qu.: 26.00  \n#&gt;  Median :15.0   Median : 36.00  \n#&gt;  Mean   :15.4   Mean   : 42.98  \n#&gt;  3rd Qu.:19.0   3rd Qu.: 56.00  \n#&gt;  Max.   :25.0   Max.   :120.00\nYou’ll still need to render README.Rmd regularly, to keep README.md up-to-date. devtools::build_readme() is handy for this.\nYou can also embed plots, for example:\n\nIn that case, don’t forget to commit and push the resulting figure files, so they display on GitHub and CRAN.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "quarto.tabset",
+    "section": "",
+    "text": "You can install the development version of quarto.tabset from GitHub with:\n# install.packages(\"pak\")\npak::pak(\"sayuks/quarto.tabset\")",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#example",
+    "href": "index.html#example",
+    "title": "quarto.tabset",
+    "section": "",
+    "text": "This is a basic example which shows you how to solve a common problem:\nlibrary(quarto.tabset)\n## basic example code\nWhat is special about using README.Rmd instead of just README.md? You can include R chunks like so:\nsummary(cars)\n#&gt;      speed           dist       \n#&gt;  Min.   : 4.0   Min.   :  2.00  \n#&gt;  1st Qu.:12.0   1st Qu.: 26.00  \n#&gt;  Median :15.0   Median : 36.00  \n#&gt;  Mean   :15.4   Mean   : 42.98  \n#&gt;  3rd Qu.:19.0   3rd Qu.: 56.00  \n#&gt;  Max.   :25.0   Max.   :120.00\nYou’ll still need to render README.Rmd regularly, to keep README.md up-to-date. devtools::build_readme() is handy for this.\nYou can also embed plots, for example:\n\nIn that case, don’t forget to commit and push the resulting figure files, so they display on GitHub and CRAN.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "CITATION.html",
+    "href": "CITATION.html",
+    "title": "Citation",
+    "section": "",
+    "text": "Citation\n‘quarto.tabset’ パッケージの引用には以下を用いてください:\n\nLast F (????). quarto.tabset: What the Package Does (One Line, Title Case). R package version 0.0.0.9000, https://github.com/sayuks/quarto.tabset."
+  },
+  {
+    "objectID": "LICENSE.html",
+    "href": "LICENSE.html",
+    "title": "MIT License",
+    "section": "",
+    "text": "MIT License\nCopyright (c) 2024 quarto.tabset authors\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+    "crumbs": [
+      "License"
+    ]
+  },
+  {
+    "objectID": "NEWS.html",
+    "href": "NEWS.html",
+    "title": "quarto.tabset 0.0.0.9000",
+    "section": "",
+    "text": "quarto.tabset 0.0.0.9000\n\nInitial CRAN submission.",
+    "crumbs": [
+      "News"
+    ]
+  }
+]
