@@ -8,7 +8,6 @@ execute:
 
 website:
   title: "$ALTDOC_PACKAGE_NAME"
-  code-links: true
   navbar:
     search: true
     right:
